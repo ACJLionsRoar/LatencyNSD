@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
         Button hostBtn= (Button) findViewById(R.id.hostBTN);
         Button discoverBtn= (Button) findViewById(R.id.discoverBTN);
-//
+        
+//          ASYNC TASK CALL
 //        try{
 //            ans = new Time().execute().get();
 //        } catch(InterruptedException e) {
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                     init=10000000;
                     now=System.currentTimeMillis();
-                    time=now-now;
+                    time=now-init;          // TIME IS ALWAYS A 10 DIGIT. ETHRE KURACHITTUM ATH THANNA DISPLAY AAVANE
                     display.setText("t: " + time);
                     handler.postDelayed(this, 30);
 
