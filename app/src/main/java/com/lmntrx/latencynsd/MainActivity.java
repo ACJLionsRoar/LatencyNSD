@@ -5,65 +5,95 @@ import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-
+import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
-    static final int SocketServerPORT = 8080;  // Port should be fetched dynamically in real systems.// NSD Manager and service registration code
+    int SocketServerPORT;  // Port should be fetched dynamically in real systems.// NSD Manager and service registration code
     private String SERVICE_NAME = "NSD";
     private String SERVICE_TYPE = "_http._tcp.";
     private NsdManager mNsdManager;
 
+    boolean serviceHosting = false;
+    boolean serviceDiscovering = false;
+    Runnable updater;
+
+    long init,now,time,paused;
+    Handler handler;
+    TextView display;
+    String ans;
+
+
     private static final String TAG = "MainActivity";
-//Initialize other variable that you will need
-
-
-    boolean firstOpen;
-    ServerSocket serverSocket;
-    //ServerSocket mServerSocket;
-    //ServerSocket mLocalPort;
 
     NsdManager.RegistrationListener mRegistrationListener;
     NsdManager.DiscoveryListener mDiscoveryListener;
     NsdManager.ResolveListener mResolveListener;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //Fetch other Components
+
+
+
+
+
 
 
         mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
 
         Button hostBtn= (Button) findViewById(R.id.hostBTN);
         Button discoverBtn= (Button) findViewById(R.id.discoverBTN);
+//
+//        try{
+//            ans = new Time().execute().get();
+//        } catch(InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//        }
+//        catch (ExecutionException e) {
+//
+//        }
+//
+//        init=Long.parseLong(ans);
+//
+
+
 
         hostBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                try {
 
-
-                registerService(SocketServerPORT);
+                    serviceDiscovering=false;
+                    serviceHosting=true;
+                    initializeServerSocket();
+                    registerService(SocketServerPORT);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
             }
         });
 
         discoverBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                Log.d("Entered Onclick","Entered Onclick");
 
-
-                Log.d("Entered Onclick","Entered Onlcick");
-
-
+                serviceHosting=false;
+                serviceDiscovering=true;
                 initializeDiscoveryListener();
                 mNsdManager.discoverServices(
                         SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
@@ -72,29 +102,65 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        handler = new Handler();
+
+        display = (TextView) findViewById(R.id.TimeTV);
+        updater = new Runnable() {
+            @Override
+            public void run() {
+                    init=10000000;
+                    now=System.currentTimeMillis();
+                    time=now-now;
+                    display.setText("t: " + time);
+                    handler.postDelayed(this, 30);
+
+            }
+        };
+
+        handler.post(updater);
+
+
 
 
 
 
     }
-//};
 
-    /*
-    public void initializeServerSocket() {
-        // Initialize a server socket on the next available port.
-        mServerSocket = new ServerSocket(0);
+    @Override
+    protected void onPause() {
+        super.onPause();
 
-        // Store the chosen port.
-        mLocalPort =  mServerSocket.getLocalPort();
+       if(serviceHosting)
+       {
+           mNsdManager.unregisterService(mRegistrationListener);
+           Log.d(TAG,"Paused Hosting Correctly");
+       }
 
+        else if(serviceDiscovering)
+       {
+           mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+           Log.d(TAG,"Paused Discovering Correctly");
+       }
     }
-
-   */
-
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (serviceHosting)
+        {
+
+            registerService(SocketServerPORT);
+            Log.d(TAG,"Resumed Hosting Correctly");
+        }
+
+        else if (serviceDiscovering)
+        {
+
+            initializeDiscoveryListener();
+            mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
+            Log.d(TAG,"Resumed Discovering Correctly");
+        }
+
 
 
     }
@@ -103,15 +169,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        if (serverSocket != null) {
-            try {
-                serverSocket.close();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+        if(serviceHosting)
+        {
+            mNsdManager.unregisterService(mRegistrationListener);
+            Log.d(TAG,"Destroyed Hosting Correctly");
         }
+
+        else if(serviceDiscovering)
+        {
+            mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+            Log.d(TAG,"Destroyed Discovering Correctly");
+        }
+
+        handler.removeCallbacks(updater);
+        super.onDestroy();
     }
+
+
+
 
     public void registerService(int port) {
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
@@ -124,6 +199,14 @@ public class MainActivity extends AppCompatActivity {
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
 
+    public void initializeServerSocket() throws IOException {
+        // Initialize a server socket on the next available port.
+        ServerSocket serverSocket = new ServerSocket(0);
+
+        // Store the chosen port.
+        SocketServerPORT =  serverSocket.getLocalPort();
+
+    }
 
     public void initializeRegistrationListener() {
         mRegistrationListener = new NsdManager.RegistrationListener() {
@@ -160,7 +243,6 @@ public class MainActivity extends AppCompatActivity {
         };
 
     }
-
 
     public void initializeDiscoveryListener() {
 
@@ -264,10 +346,9 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    // NsdHelper's tearDown method
-    public void tearDown() {
-        mNsdManager.unregisterService(mRegistrationListener);
-        mNsdManager.stopServiceDiscovery(mDiscoveryListener);
-    }
+
+
+
+
 
 }
