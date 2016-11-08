@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     boolean serviceDiscovering = false;
     Runnable updater;
 
-    long init,now,time,paused;
+    long serverTime,currentTime,finalTimer=0;
     Handler handler;
     TextView display;
     String ans;
@@ -60,8 +60,12 @@ public class MainActivity extends AppCompatActivity {
 
         Button hostBtn= (Button) findViewById(R.id.hostBTN);
         Button discoverBtn= (Button) findViewById(R.id.discoverBTN);
-        
-//          ASYNC TASK CALL
+        Button currentTimeBtn = (Button) findViewById(R.id.currentTimeButton);
+
+    //--------------------------------TIMER FUNCTIONS---------------------------------------------------------
+
+    //         ASYNC TASK CALL v
+
         try{
             ans = new Time().execute().get();
             Log.d("Test",ans);
@@ -71,8 +75,51 @@ public class MainActivity extends AppCompatActivity {
         catch (ExecutionException ignored) {
 
         }
+    // ASYNC CALL ENDS ^
 
-        init=Long.parseLong(ans);
+        serverTime=Long.parseLong(ans);
+        currentTime=serverTime;
+
+        handler = new Handler();
+
+        final int[] seconds = {0};
+        display = (TextView) findViewById(R.id.TimeTV);
+        updater = new Runnable() {
+            @Override
+            public void run() {
+                seconds[0] += 500;
+                currentTime=serverTime+seconds[0];
+                finalTimer=currentTime-serverTime;
+                display.setText("t: " + finalTimer);
+
+            }
+        };
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(updater);
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(timerTask,500,500);
+
+        TextView sTime = (TextView) findViewById(R.id.serverTime);
+        final TextView cTime = (TextView) findViewById(R.id.currentTime);
+
+        sTime.setText("Server Time: "+serverTime);
+
+        currentTimeBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+                cTime.setText("Current Timer:"+finalTimer);
+
+            }
+        });
+
+
+
+        //----------------------------------------------------------------------------------------------------
 
 
 
@@ -106,27 +153,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        handler = new Handler();
-
-        final int[] seconds = {0};
-        display = (TextView) findViewById(R.id.TimeTV);
-        updater = new Runnable() {
-            @Override
-            public void run() {
-                seconds[0] += 1000;
-                display.setText("t: " + (Long.parseLong(ans) + seconds[0]));
-
-            }
-        };
-
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(updater);
-            }
-        };
-        Timer timer = new Timer();
-        timer.schedule(timerTask,1000,1000);
 
 
 

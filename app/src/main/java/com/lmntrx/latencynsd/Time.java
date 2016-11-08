@@ -45,10 +45,10 @@ class Time extends AsyncTask<String,String,String> {
             Date time = new Date(returnTime);
             Log.d(TAG, "Time from " + TIME_SERVER + ": " + time);
 
-            String givenDateString = "Tue Apr 23 16:08:28 GMT+05:30 2013";
+            //String givenDateString = "Tue Apr 23 16:08:28 GMT+05:30 2013";
             SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
             try {
-                Date mDate = sdf.parse(givenDateString);
+                Date mDate = sdf.parse(time.toString());
                 timeInMilliseconds = mDate.getTime();
                 converted = timeInMilliseconds + "";
 
