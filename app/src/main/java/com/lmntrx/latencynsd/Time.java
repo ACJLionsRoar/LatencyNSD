@@ -19,12 +19,11 @@ import java.util.Date;
  * Created by ACJLionsRoar on 11/2/16.
  */
 
-public class Time extends AsyncTask<String,String,String> {
+class Time extends AsyncTask<String,String,String> {
 
-    public static String TAG="Time Class";
-    public static final String TIME_SERVER = "time-a.nist.gov";
+    private static final String TIME_SERVER = "time-a.nist.gov";
     String printMessage="NO MESSAGE SET";
-    long timeInMilliseconds;
+    private long timeInMilliseconds;
     private String returnTime;
 
     private Date time = new Date();
@@ -34,6 +33,7 @@ public class Time extends AsyncTask<String,String,String> {
         String converted="Error";
 
         NTPUDPClient timeClient = new NTPUDPClient();
+        String TAG = "Time Class";
         try {
             InetAddress inetAddress = InetAddress.getByName(TIME_SERVER);
             TimeInfo timeInfo = timeClient.getTime(inetAddress);
@@ -50,7 +50,7 @@ public class Time extends AsyncTask<String,String,String> {
             try {
                 Date mDate = sdf.parse(givenDateString);
                 timeInMilliseconds = mDate.getTime();
-                 converted = String.valueOf(timeInMilliseconds);
+                converted = timeInMilliseconds + "";
 
                 Log.d(TAG, "Time Converted" + timeInMilliseconds);
             } catch (ParseException e) {
@@ -66,7 +66,7 @@ public class Time extends AsyncTask<String,String,String> {
         {
             Log.d(TAG,"IO Exception Caught");
         }
-
+        Log.d("END CONVO",converted);
         return converted;
     }
 

@@ -16,6 +16,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
 
@@ -60,17 +62,18 @@ public class MainActivity extends AppCompatActivity {
         Button discoverBtn= (Button) findViewById(R.id.discoverBTN);
         
 //          ASYNC TASK CALL
-//        try{
-//            ans = new Time().execute().get();
-//        } catch(InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        }
-//        catch (ExecutionException e) {
-//
-//        }
-//
-//        init=Long.parseLong(ans);
-//
+        try{
+            ans = new Time().execute().get();
+            Log.d("Test",ans);
+        } catch(InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        catch (ExecutionException ignored) {
+
+        }
+
+        init=Long.parseLong(ans);
+
 
 
 
@@ -105,20 +108,25 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler();
 
+        final int[] seconds = {0};
         display = (TextView) findViewById(R.id.TimeTV);
         updater = new Runnable() {
             @Override
             public void run() {
-                    init=10000000;
-                    now=System.currentTimeMillis();
-                    time=now-init;          // TIME IS ALWAYS A 10 DIGIT. ETHRE KURACHITTUM ATH THANNA DISPLAY AAVANE
-                    display.setText("t: " + time);
-                    handler.postDelayed(this, 30);
+                seconds[0] += 1000;
+                display.setText("t: " + (Long.parseLong(ans) + seconds[0]));
 
             }
         };
 
-        handler.post(updater);
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(updater);
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(timerTask,1000,1000);
 
 
 
