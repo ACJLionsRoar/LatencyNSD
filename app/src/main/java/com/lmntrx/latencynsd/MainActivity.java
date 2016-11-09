@@ -659,7 +659,7 @@ public class MainActivity extends AppCompatActivity {
                     latency= returnedFinishTime-testStartTime;
 
                     Intent intent = new Intent();
-                    intent.setAction(getPackageName());
+                    intent.setAction(getPackageName() + ".LATENCY");
 
                     intent.putExtra("LATENCY",latency+"");
                     sendBroadcast(intent);
@@ -716,7 +716,11 @@ public class MainActivity extends AppCompatActivity {
 
                     }
 
+                    Intent intent = new Intent();
+                    intent.setAction(getPackageName() + ".REPLY");
 
+                    intent.putExtra("REPLY","SUCCESS");
+                    sendBroadcast(intent);
 
 
                     //-------------------------
@@ -751,6 +755,8 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         unregisterReceiver(receiver);
         unregisterReceiver(receiver2);
+        unregisterReceiver(finalReceiverClientDevice);
+        unregisterReceiver(finalReceiverHostDevice);
        if(serviceHosting)
        {
            mNsdManager.unregisterService(mRegistrationListener);
@@ -773,6 +779,12 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter intentFilter2 = new IntentFilter();
         intentFilter2.addAction(getPackageName() + ".HOST");
         registerReceiver(receiver2,intentFilter2);
+        IntentFilter intentFilter3 = new IntentFilter();
+        intentFilter3.addAction(getPackageName() + ".LATENCY");
+        registerReceiver(finalReceiverHostDevice,intentFilter3);
+        IntentFilter intentFilter4 = new IntentFilter();
+        intentFilter4.addAction(getPackageName() + ".REPLY");
+        registerReceiver(finalReceiverClientDevice,intentFilter4);
         if (serviceHosting)
         {
 
