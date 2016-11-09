@@ -1,65 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:tools="http://schemas.android.com/tools"
 android:id="@+id/activity_main"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-android:paddingBottom="@dimen/activity_vertical_margin"
-android:paddingLeft="@dimen/activity_horizontal_margin"
-android:paddingRight="@dimen/activity_horizontal_margin"
-android:paddingTop="@dimen/activity_vertical_margin"
-android:orientation="vertical"
-android:gravity="center"
+    android:background="@color/Blue"
 tools:context="com.lmntrx.latencynsd.MainActivity">
 
-<Button
-    android:id="@+id/hostBTN"
-    android:text="HOST"
+    <TextView
+        android:layout_alignParentTop="true"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp"
+        android:paddingTop="50dp"
+        android:background="@color/colorPrimary"
+        android:textColor="#fff"
+        android:gravity="center"
+        android:textSize="30sp"
+        android:id="@+id/header"
+        android:text="Choose to Host or Discover"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+         />
+
+
+    <LinearLayout
+        android:id="@+id/ButtonsLinear"
+        android:padding="8dp"
+        android:weightSum="2"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+
+        >
+
+        <Button
+
+            android:paddingTop="40dp"
+            android:paddingBottom="40dp"
+            android:textColor="#fff"
+            android:background="@color/colorPrimaryDark"
+            android:textSize="30sp"
+            android:layout_weight="1"
+            android:id="@+id/hostBTN"
+            android:text="HOST"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:paddingTop="40dp"
+            android:paddingBottom="40dp"
+            android:textColor="#fff"
+            android:textSize="30sp"
+            android:background="@color/colorPrimaryDark"
+            android:layout_weight="1"
+            android:id="@+id/discoverBTN"
+            android:text="DISCOVER"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+
+    </LinearLayout>
+
+
+
+    <TextView
+        android:visibility="gone"
+    android:id="@+id/handshakeTxtView"
+    android:gravity="center"
+    android:text="Waiting For Handshake"
+    android:textSize="40sp"
+    android:textColor="#fff"
+    android:layout_centerInParent="true"
     android:layout_width="match_parent"
     android:layout_height="wrap_content" />
 
-<Button
-    android:id="@+id/discoverBTN"
-    android:text="DISCOVER"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content" />
-
     <TextView
-        android:layout_marginTop="40dp"
+        android:visibility="gone"
+        android:id="@+id/handshakeDots"
         android:gravity="center"
-        android:textSize="20sp"
-        android:text="Timer Not Started"
-        android:id="@+id/TimeTV"
-        android:layout_width="match_parent"
+        android:text="."
+        android:textSize="40sp"
+        android:textColor="#fff"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/handshakeTxtView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <TextView
-        android:layout_marginTop="40dp"
-        android:gravity="center"
-        android:textSize="20sp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/serverTime"
-        android:text="No Server Time Received"
-        />
-
-    <Button
-        android:layout_marginTop="40dp"
-        android:id="@+id/currentTimeButton"
-        android:layout_gravity="center"
-        android:text="Get Current Time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <TextView
-        android:text="Current Time Not Received"
-        android:layout_marginTop="40dp"
-        android:id="@+id/currentTime"
-        android:gravity="center"
-        android:textSize="20sp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
-        />
-
-</LinearLayout>
+</RelativeLayout>
