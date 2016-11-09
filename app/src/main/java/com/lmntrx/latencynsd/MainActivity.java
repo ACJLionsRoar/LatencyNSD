@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -35,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
-    int SocketServerPORT;  // Port should be fetched dynamically in real systems.// NSD Manager and service registration code
+    int SocketServerPORT;
     private String SERVICE_NAME = "NSD";
     private String SERVICE_TYPE = "_http._tcp.";
     private NsdManager mNsdManager;
@@ -55,12 +54,8 @@ public class MainActivity extends AppCompatActivity {
 
     long serverTime,currentTime,finalTimer=0;
     Handler handler;
-    TextView display;
     String ans;
 
-    int okToContinueClient=0;
-    int okToDisplayHandshake=0;
-    int okToContinueHost=0;
 
     long testStartTime;
     long testFinishTime;
@@ -74,17 +69,6 @@ public class MainActivity extends AppCompatActivity {
     InetAddress sendReplyHost;
 
     ServerSocket localserverSocket;
-
-    Timer timer2;
-
-
-
-    Handler loadingHandler;
-    Runnable loadingRunnable;
-    int loadingcount;
-
-
-
 
 
     private static final String TAG = "MainActivity";
@@ -105,30 +89,8 @@ public class MainActivity extends AppCompatActivity {
         final LinearLayout buttonsLL = (LinearLayout) findViewById(R.id.ButtonsLinear);
         final TextView handshakeTV= (TextView) findViewById(R.id.handshakeTxtView);
         final  TextView handshakeDots= (TextView) findViewById(R.id.handshakeDots);
-        final TextView header= (TextView) findViewById(R.id.header);
-
-
-//    try
-//    {
-//        initializeServerSocket();
-//    }
-//    catch (IOException e)
-//    {
-//
-//    }
-
-
-
-
 
         mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
-
-
-
-
-    //--------------------------------TIMER FUNCTIONS---------------------------------------------------------
-
-    //         ASYNC TASK CALL v
 
         try{
             ans = new Time().execute().get();
@@ -139,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
         catch (ExecutionException ignored) {
 
         }
-    // ASYNC CALL ENDS ^
 
         serverTime=Long.parseLong(ans);
         currentTime=serverTime;
@@ -147,14 +108,12 @@ public class MainActivity extends AppCompatActivity {
         handler = new Handler();
 
         final int[] seconds = {0};
-        //display = (TextView) findViewById(R.id.TimeTV);
         updater = new Runnable() {
             @Override
             public void run() {
                 seconds[0] += 50;
                 currentTime=serverTime+seconds[0];
                 finalTimer=currentTime-serverTime;
-                //display.setText("t: " + finalTimer);
 
             }
         };
@@ -168,95 +127,13 @@ public class MainActivity extends AppCompatActivity {
         countDownTimer = new Timer();
         countDownTimer.schedule(timerTask,50,50);
 
-        //TextView sTime = (TextView) findViewById(R.id.serverTime);
-        //final TextView cTime = (TextView) findViewById(R.id.currentTime);
-
-//        sTime.setText("Server Time: "+serverTime);
-//
-//        currentTimeBtn.setOnClickListener(new View.OnClickListener() {
-//            public void onClick(View v) {
-//
-//                cTime.setText("Current Timer:"+finalTimer);
-//
-//            }
-//        });
-
-
-
-        //----------------------------------------------------------------------------------------------------
-
-
-
 
         hostBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-
-                // EDAAAA  EEE GONE appo thanne work aavilla. HANDSHAKE KAZHINJITTE UI UPDATE AAVANOLLU :/  IVIDE ENTHU GONE/VISIBLE AAKIYALUM
-//
-//                Log.d(TAG, "REQUIRED TRY BLOCK 1");
-//
-//
-//                Socket socket = serverSocket.accept();
-//                // loadingTimer.cancel();
-//
-//
-//
-//                Log.d(TAG, "REQUIRED TRY BLOCK 2");
-
-
-  //                thaazhe kidakkane ee code execute aayitte ee visibility update aavu :/  KOPP  EVERYTHING WORKS IN LOG
-                //
                 buttonsLL.setVisibility(View.GONE);
                 handshakeTV.setVisibility(View.VISIBLE);
                 handshakeDots.setVisibility(View.VISIBLE);
-
-             //   try {
-//
-//
-//
-//
-//
-//
-//
-//                    loadingHandler = new Handler();
-//
-//                    loadingcount=1;
-//
-//                    loadingRunnable = new Runnable() {
-//                        @Override
-//                        public void run() {
-//
-//                            switch (loadingcount)
-//                            {
-//                                case 1: handshakeDots.setText(".."); loadingcount=2;
-//                                    break;
-//                                case 2: handshakeDots.setText("..."); loadingcount=3;
-//                                    break;
-//                                case 3: handshakeDots.setText("...."); loadingcount=4;
-//                                    break;
-//                                case 4: handshakeDots.setText("."); loadingcount=1;
-//                                    break;
-//                            }
-//
-//                        }
-//                    };
-//
-//                    TimerTask loadingtimerTask = new TimerTask() {
-//                        @Override
-//                        public void run() {
-//                            loadingHandler.post(loadingRunnable);
-//                        }
-//                    };
-//                    final Timer loadingTimer = new Timer();
-//                    loadingTimer.schedule(loadingtimerTask,500,500);
-//
-//
-
-
-
-
-
 
                     serviceDiscovering = false;
                     serviceHosting = true;
@@ -267,48 +144,10 @@ public class MainActivity extends AppCompatActivity {
 
                     Log.d(TAG, "REGISTERED PORT 1= " + SocketServerPORT);
 
-                    //----WHILE
-
-//
-//                        timer2 = new Timer();
-//                        timer2.scheduleAtFixedRate(new TimerTask() {
-//                            @Override
-//                            public void run() {
-//
-
-
-
-
-//                                TextView debug= (TextView) findViewById(R.id.debug);
-//
-//                                debug.setText("Handshake IP:"+handshakeIP);
-
-
-
-
-
-
-
-
-
-//                            }
-//                        }, 1000, 1000);
-
-                // INGANE CHEYUMBO UI HANGS.
 
                 new HostTask().execute();
 
                 handshakeTV.setText(" ");
-
-                // asynctask execute aayi kazhinjittu oru String Variable il Host IP of 2nd phone kittanam. aa host IP vechittanu 1st fone gonna send a data to 2nd phone and test latency
-
-
-
-
-
-
-
-                    //-------------------WHILE ENDED ^^
 
 
 
@@ -337,10 +176,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //ithanu receiver
-    //IP and Port kittumbo async task sends out a broadcast
-    //adh eppozhayalum ivide receive cheytholum
-    //receive cheyyumbo intentil ninne data textViewsil disp cheyyum
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -352,9 +187,6 @@ public class MainActivity extends AppCompatActivity {
 
             port.setText("Connected Port:"+intent.getStringExtra("PORT"));
             host.setText("Discovered Device IP:"+intent.getStringExtra("IP"));
-
-//            ((TextView)findViewById(R.id.handshakeDots)).setText("Connected Port:"+intent.getStringExtra("PORT"));
-//            ((TextView)findViewById(R.id.handshakeTxtView)).setText("Discovered Device IP:"+intent.getStringExtra("IP"));
 
             TextView yourdevice= (TextView) findViewById(R.id.handshakeInitial);
             yourdevice.setVisibility(View.VISIBLE);
@@ -475,7 +307,6 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void run() {
-                    //------------------------------
 
 
                     try {
@@ -484,7 +315,6 @@ public class MainActivity extends AppCompatActivity {
                         registerService(SocketServerPORT);
                         Intent intent = new Intent();
                         intent.setAction(getPackageName());
-                        //header.setText("Hosted on Port:"+SocketServerPORT);
 
 
 
@@ -493,7 +323,6 @@ public class MainActivity extends AppCompatActivity {
 
 
                         Socket socket = serverSocket.accept();
-                        // loadingTimer.cancel();
 
 
 
@@ -504,8 +333,6 @@ public class MainActivity extends AppCompatActivity {
                                 socket.getInputStream());
 
                         Log.d(TAG, "REQUIRED TRY BLOCK 3");
-                        DataOutputStream dataOutputStream = new DataOutputStream(
-                                socket.getOutputStream());
 
                         Log.d(TAG, "REQUIRED TRY BLOCK 4");
 
@@ -538,31 +365,16 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra("IP",handshakeIP+"");
                         sendBroadcast(intent);
 
-
-
-
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
-
-                    //-------------------------
                 }
             };
 
 
 
             handshake.start();
-
-//            try
-//            {
-//                handshake.join();
-//
-//            }catch (InterruptedException ignored)
-//            {
-//
-//            }
             return handshakeIP + "";
         }
     }
@@ -575,7 +387,6 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void run() {
-                    //------------------------------
 
                     serviceHosting=false;
                     serviceDiscovering=true;
@@ -583,35 +394,12 @@ public class MainActivity extends AppCompatActivity {
                     initializeDiscoveryListener();
                     mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
 
-
-
-                    //-------------------------
                 }
             };
 
             discover.start();
-//            try{
-//                discover.join();
-//            }
-//           catch (InterruptedException e)
-//           {
-//
-//           }
 
-            // --------------------------------------------------ITHU NOKK----------------------------------------------------
-
-
-
-            // ee return cheyyunna value null aa.  discover.join() should have executed this return after thread is completed.
-            // but angane ittitum  work aayilla.
-            // this return is executed before the thread is completed and discovery is resolved. atha null varane.
-            // ee return cheyyunna value il resolve cheyyunna method il initialise cheytha value kitticha baaki work aayikolum
-            // automatically.
             return  resutNsdServiceInfo;
-
-
-            // this return is passed to onPostExecute which is on the main UI thread.
-
 
         }
 
@@ -636,7 +424,6 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void run() {
-                    //------------------------------
 
                     try {
                         Socket socket = new Socket(sendTestHost,sendTestPORT);
@@ -677,15 +464,10 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("LATENCY",latency+"");
                     sendBroadcast(intent);
 
-
-
-
-                    //-------------------------
                 }
             };
 
             discover.start();
-//
             return  "hi";
 
 
@@ -706,7 +488,6 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void run() {
-                    //------------------------------
 
                     try {
                         localserverSocket = new ServerSocket(sendReplyPORT);
@@ -724,7 +505,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                    }catch (IOException e)
+                    }catch (IOException ignored)
                     {
 
                     }
@@ -735,13 +516,10 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("REPLY","SUCCESS");
                     sendBroadcast(intent);
 
-
-                    //-------------------------
                 }
             };
 
             discover.start();
-//
             return  "hi";
 
 
@@ -984,13 +762,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onServiceResolved(NsdServiceInfo serviceInfo) {
 
-                NsdServiceInfo mService = serviceInfo;
                 resutNsdServiceInfo = serviceInfo;
 
                 Log.d(TAG, "Resolve Succeeded. " + serviceInfo);
 
-                int port = mService.getPort();
-                InetAddress host = mService.getHost();
+                int port = serviceInfo.getPort();
+                InetAddress host = serviceInfo.getHost();
 
                 discoveredPORT=port;
                 discoveredHost=host;
@@ -1006,8 +783,6 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     Socket socket = new Socket(discoveredHost,discoveredPORT);
-                    DataInputStream dataInputStream = new DataInputStream(
-                            socket.getInputStream());
                     DataOutputStream dataOutputStream = new DataOutputStream(
                             socket.getOutputStream());
 
@@ -1018,12 +793,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-//
-//                TextView handshakeOnDiscovery = (TextView) findViewById(R.id.handshakeTxtView);
-//
-//                handshakeOnDiscovery.setVisibility(View.VISIBLE);
-//                handshakeOnDiscovery.setText(discoveredHost +"");
 
                 Intent intent = new Intent();
                 intent.putExtra("HOST",discoveredHost+"")
@@ -1045,7 +814,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private String getIpAddress() {
-        String ip=null;
+        String ip="";
         try {
             Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface
                     .getNetworkInterfaces();
