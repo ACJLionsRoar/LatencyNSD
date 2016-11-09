@@ -191,6 +191,8 @@ public class MainActivity extends AppCompatActivity {
   //                thaazhe kidakkane ee code execute aayitte ee visibility update aavu :/  KOPP  EVERYTHING WORKS IN LOG
                 //
                 buttonsLL.setVisibility(View.GONE);
+                handshakeTV.setVisibility(View.VISIBLE);
+                handshakeDots.setVisibility(View.VISIBLE);
 
              //   try {
 //
@@ -275,9 +277,25 @@ public class MainActivity extends AppCompatActivity {
 //                            }
 //                        }, 1000, 1000);
 
+                // INGANE CHEYUMBO UI HANGS.
+
+                String returnedHandshakeIP="didnt work";
+
+                try {
+                     returnedHandshakeIP= new HostTask().execute().get();
+                } catch (InterruptedException e)
+                {
+
+                }catch (ExecutionException e)
+                {
+
+                }
+
+                // asynctask execute aayi kazhinjittu oru String Variable il Host IP of 2nd phone kittanam. aa host IP vechittanu 1st fone gonna send a data to 2nd phone and test latency
+
+                handshakeTV.setText(returnedHandshakeIP);
 
 
-                new HostTask().execute();
 
 
 
@@ -465,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
             {
 
             }
-            return SocketServerPORT + "";
+            return handshakeIP + "";
         }
     }
 
