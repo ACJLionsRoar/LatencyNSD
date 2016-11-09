@@ -281,6 +281,8 @@ public class MainActivity extends AppCompatActivity {
 
                 new HostTask().execute();
 
+                handshakeTV.setText("Receiving.....Kittumbo kaanikkam....");
+
                 // asynctask execute aayi kazhinjittu oru String Variable il Host IP of 2nd phone kittanam. aa host IP vechittanu 1st fone gonna send a data to 2nd phone and test latency
 
 
