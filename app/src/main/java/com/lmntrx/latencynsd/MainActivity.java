@@ -34,6 +34,9 @@ import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    // DECLARE ALL NECESSARY VARIABLES
+
     int SocketServerPORT;
     private String SERVICE_NAME = "NSD";
     private String SERVICE_TYPE = "_http._tcp.";
@@ -79,6 +82,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    // THIS IS THE MAIN CODE BLOCK THAT IS EXECUTED FIRST
+    // TIMER IS SET UP HERE
+    // ALL OTHERS ARE CALLED FROM HERE
+    // EXECUTION BEGINS HERE
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -176,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // It runs after HOST BACKGROUND TASK IS COMPLETED ON CLIENT DEVICE ie device where HOST is pressed
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -192,23 +200,13 @@ public class MainActivity extends AppCompatActivity {
             yourdevice.setVisibility(View.VISIBLE);
             yourdevice.setText("Your Device:"+getIpAddress());
 
-
-
-
             Button test = (Button) findViewById(R.id.testLatency);
             test.setVisibility(View.VISIBLE);
-
-
 
             test.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
 
-
-
-
                     new sendTestData().execute();
-
-
                 }
             });
 
@@ -218,12 +216,15 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+
+    // It runs after DISCOVERY BACKGROUND TASK IS COMPLETED ON CLIENT DEVICE ie device where discover is pressed
     BroadcastReceiver receiver2 = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             TextView yourdevice= (TextView) findViewById(R.id.handshakeInitial);
             TextView handshakeOnDiscovery = (TextView) findViewById(R.id.handshakeTxtView);
             TextView handshakePortOnDiscovery= (TextView) findViewById(R.id.handshakeDots);
+
             handshakeOnDiscovery.setVisibility(View.VISIBLE);
             handshakeOnDiscovery.setText("Hosted Device IP:"+intent.getStringExtra("HOST"));
 
@@ -251,13 +252,12 @@ public class MainActivity extends AppCompatActivity {
 
             new sendTestReply().execute();
 
-
-
         }
     };
 
 
 
+    // It runs after LATENCY TEST IS COMPLETED ON HOST DEVICE
     BroadcastReceiver finalReceiverHostDevice = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -278,11 +278,12 @@ public class MainActivity extends AppCompatActivity {
             else
             latencyTxtVw.setText("Latency="+intent.getStringExtra("LATENCY")+" ms");
 
-
-
         }
     };
 
+
+
+    // It runs after LATENCY TEST IS COMPLETED ON CLIENT DEVICE
     BroadcastReceiver finalReceiverClientDevice = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -291,15 +292,13 @@ public class MainActivity extends AppCompatActivity {
 
             updateWaiting.setText("Latency Test Completed!");
 
-
-
         }
     };
 
 
 
 
-
+    // This is a background task that executes the code when user presses Host.
     private class HostTask extends AsyncTask<Void,Void,String>{
         @Override
         protected String doInBackground(Void... params) {
@@ -380,6 +379,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // This is a background task that executes the code when user presses Discover.
     private class DiscoverTask extends AsyncTask<Void,Void,NsdServiceInfo>{
         @Override
         protected NsdServiceInfo doInBackground(Void... params) {
@@ -417,6 +417,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    // This is a background task that initiates the LATENCY TEST
     private class sendTestData extends AsyncTask<Void,Void,String>{
         @Override
         protected String doInBackground(Void... params) {
@@ -481,6 +483,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //This is a background task that replies to the LATENCY TEST.
     private class sendTestReply extends AsyncTask<Void,Void,String>{
         @Override
         protected String doInBackground(Void... params) {
@@ -536,11 +540,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-
-
+    // Called when the app is to be paused
     @Override
     protected void onPause() {
         super.onPause();
@@ -561,6 +561,8 @@ public class MainActivity extends AppCompatActivity {
        }
     }
 
+
+    // Called when the app is resumed from a paused state
     @Override
     protected void onResume() {
         super.onResume();
@@ -593,6 +595,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    // Called when the app is closed
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -619,6 +623,22 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
+    // This method initializes the socket used to send and receive data
+    public void initializeServerSocket() throws IOException {
+        // Initialize a server socket on the next available port.
+        serverSocket = new ServerSocket(0);
+
+        // Store the chosen port.
+        SocketServerPORT =  serverSocket.getLocalPort();
+
+
+    }
+
+
+    // This is used to register the Host device so that other devices can see it
     public void registerService(int port) {
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
         serviceInfo.setServiceName(SERVICE_NAME);
@@ -630,16 +650,7 @@ public class MainActivity extends AppCompatActivity {
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
 
-    public void initializeServerSocket() throws IOException {
-        // Initialize a server socket on the next available port.
-        serverSocket = new ServerSocket(0);
-
-        // Store the chosen port.
-        SocketServerPORT =  serverSocket.getLocalPort();
-
-
-    }
-
+    // Inorder to register the service a Listener is required
     public void initializeRegistrationListener() {
         mRegistrationListener = new NsdManager.RegistrationListener() {
 
@@ -679,6 +690,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+
+    // This is used to search for available Hosts to connect to
     public void initializeDiscoveryListener() {
 
         // Instantiate a new DiscoveryListener
@@ -750,6 +764,9 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+
+
+    // This is used to connect to an available host device
     public void initializeResolveListener() {
         mResolveListener = new NsdManager.ResolveListener() {
 
@@ -813,6 +830,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+    // This Method is used to get the IP address of current device
     private String getIpAddress() {
         String ip="";
         try {
@@ -845,7 +864,4 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-}
+} // ENDS

@@ -3,6 +3,7 @@ package com.lmntrx.latencynsd;
 import android.os.AsyncTask;
 import android.util.Log;
 
+// IMPORT APACHE SERVER. THIS IS USED TO GET SERVER TIME
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 
@@ -12,6 +13,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
+// THIS BACKGROUND TASK GETS A SERVER TIME FROM INTERNET AND USES IT FOR TIMER
 
 class Time extends AsyncTask<String,String,String> {
 
