@@ -27,6 +27,7 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -58,6 +59,19 @@ public class MainActivity extends AppCompatActivity {
     int okToContinueClient=0;
     int okToDisplayHandshake=0;
     int okToContinueHost=0;
+
+    long testStartTime;
+    long testFinishTime;
+    long returnedFinishTime;
+    long latency;
+
+     int sendTestPORT;
+    InetAddress sendTestHost;
+
+    int sendReplyPORT;
+    InetAddress sendReplyHost;
+
+    ServerSocket localserverSocket;
 
     Timer timer2;
 
@@ -328,21 +342,122 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            ((TextView)findViewById(R.id.header)).setText(intent.getStringExtra("PORT"));
-            ((TextView)findViewById(R.id.handshakeTxtView)).setText(intent.getStringExtra("IP"));
+            TextView header= (TextView) findViewById(R.id.header);
+            header.setText("Hosting Successful!");
+
+            TextView port = (TextView) findViewById(R.id.handshakeDots);
+            TextView host = (TextView) findViewById(R.id.handshakeTxtView);
+
+            port.setText("Connected Port:"+intent.getStringExtra("PORT"));
+            host.setText("Discovered Device IP:"+intent.getStringExtra("IP"));
+
+//            ((TextView)findViewById(R.id.handshakeDots)).setText("Connected Port:"+intent.getStringExtra("PORT"));
+//            ((TextView)findViewById(R.id.handshakeTxtView)).setText("Discovered Device IP:"+intent.getStringExtra("IP"));
+
+            TextView yourdevice= (TextView) findViewById(R.id.handshakeInitial);
+            yourdevice.setVisibility(View.VISIBLE);
+            yourdevice.setText("Your Device:"+getIpAddress());
+
+
+
+
+            Button test = (Button) findViewById(R.id.testLatency);
+            test.setVisibility(View.VISIBLE);
+
+
+
+            test.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+
+                    testStartTime=currentTime;
+                    Log.d("TAG","Test Start Time:"+testStartTime);
+
+                    new sendTestData().execute();
+
+
+                }
+            });
+
+
+
+
         }
     };
 
     BroadcastReceiver receiver2 = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            TextView yourdevice= (TextView) findViewById(R.id.handshakeInitial);
             TextView handshakeOnDiscovery = (TextView) findViewById(R.id.handshakeTxtView);
+            TextView handshakePortOnDiscovery= (TextView) findViewById(R.id.handshakeDots);
             handshakeOnDiscovery.setVisibility(View.VISIBLE);
-            handshakeOnDiscovery.setText(intent.getStringExtra("HOST"));
+            handshakeOnDiscovery.setText("Hosted Device IP:"+intent.getStringExtra("HOST"));
+
+            handshakePortOnDiscovery.setVisibility(View.VISIBLE);
+            handshakePortOnDiscovery.setText("Connected Port:"+intent.getStringExtra("PORT"));
+
+            yourdevice.setVisibility(View.VISIBLE);
+            yourdevice.setText("Your Device:"+getIpAddress());
+
             TextView header = (TextView) findViewById(R.id.header);
             header.setText("Discovery Successful!");
+
+            TextView waiting = (TextView) findViewById(R.id.waitingOnDiscovery);
+            waiting.setVisibility(View.VISIBLE);
+
+            sendReplyPORT=Integer.parseInt(intent.getStringExtra("PORT"));
+
+            try
+            {
+                sendReplyHost = InetAddress.getByName(intent.getStringExtra("IP"));;
+            } catch(UnknownHostException e)
+            {
+
+            }
+
+            new sendTestReply().execute();
+
+
+
         }
     };
+
+
+
+    BroadcastReceiver finalReceiverHostDevice = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Button testLatency = (Button) findViewById(R.id.testLatency);
+
+            testLatency.setVisibility(View.GONE);
+
+            TextView latencyTxtVw = (TextView) findViewById(R.id.latencyDisplay);
+
+            latencyTxtVw.setVisibility(View.VISIBLE);
+            latencyTxtVw.setText("Latency="+intent.getStringExtra("LATENCY"));
+
+
+
+        }
+    };
+
+    BroadcastReceiver finalReceiverClientDevice = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            TextView updateWaiting = (TextView) findViewById(R.id.waitingOnDiscovery);
+
+            updateWaiting.setText("Latency Test Completed!");
+
+
+
+        }
+    };
+
+
+
+
 
     private class HostTask extends AsyncTask<Void,Void,String>{
         @Override
@@ -404,7 +519,13 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "MESSAGE::::" + messageFromClient);
 
                         handshakeIP=InetAddress.getByName(messageFromClient);
-                        intent.putExtra("PORT",SocketServerPORT);
+
+                        sendTestPORT=SocketServerPORT;
+
+                        sendTestHost=handshakeIP;
+
+
+                        intent.putExtra("PORT",SocketServerPORT+"");
                         intent.putExtra("IP",handshakeIP+"");
                         sendBroadcast(intent);
 
@@ -425,14 +546,14 @@ public class MainActivity extends AppCompatActivity {
 
             handshake.start();
 
-            try
-            {
-                handshake.join();
-
-            }catch (InterruptedException ignored)
-            {
-
-            }
+//            try
+//            {
+//                handshake.join();
+//
+//            }catch (InterruptedException ignored)
+//            {
+//
+//            }
             return handshakeIP + "";
         }
     }
@@ -460,13 +581,13 @@ public class MainActivity extends AppCompatActivity {
             };
 
             discover.start();
-            try{
-                discover.join();
-            }
-           catch (InterruptedException e)
-           {
-
-           }
+//            try{
+//                discover.join();
+//            }
+//           catch (InterruptedException e)
+//           {
+//
+//           }
 
             // --------------------------------------------------ITHU NOKK----------------------------------------------------
 
@@ -498,6 +619,131 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+    private class sendTestData extends AsyncTask<Void,Void,String>{
+        @Override
+        protected String doInBackground(Void... params) {
+            Thread discover= new Thread() {
+
+                @Override
+                public void run() {
+                    //------------------------------
+
+                    try {
+                        Socket socket = new Socket(sendTestHost,sendTestPORT);
+                        DataInputStream dataInputStream = new DataInputStream(
+                                socket.getInputStream());
+                        DataOutputStream dataOutputStream = new DataOutputStream(
+                                socket.getOutputStream());
+
+                        String testData=testStartTime+"";
+
+                        dataOutputStream.writeUTF(testData);
+
+                        String gotReply=dataInputStream.readUTF();
+
+                        returnedFinishTime=Long.parseLong(gotReply);
+
+
+                        Log.d(TAG,"Test Data Send:"+testData);
+                        Log.d(TAG,"Got Reply:"+gotReply);
+                        Log.d(TAG,"Converted Reply:"+returnedFinishTime);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
+
+
+                    latency= returnedFinishTime-testStartTime;
+
+                    Intent intent = new Intent();
+                    intent.setAction(getPackageName());
+
+                    intent.putExtra("LATENCY",latency+"");
+                    sendBroadcast(intent);
+
+
+
+
+                    //-------------------------
+                }
+            };
+
+            discover.start();
+//
+            return  "hi";
+
+
+
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+        }
+    }
+
+    private class sendTestReply extends AsyncTask<Void,Void,String>{
+        @Override
+        protected String doInBackground(Void... params) {
+            Thread discover= new Thread() {
+
+                @Override
+                public void run() {
+                    //------------------------------
+
+                    try {
+                        localserverSocket = new ServerSocket(sendReplyPORT);
+                        Socket socket = localserverSocket.accept();
+                        testFinishTime=currentTime;
+
+                        Log.d("TAG","Test Finish Time:"+testFinishTime);
+
+                        DataOutputStream dataOutputStream = new DataOutputStream(
+                                socket.getOutputStream());
+
+                        String replyData=testFinishTime+"";
+
+                        dataOutputStream.writeUTF(replyData);
+
+
+
+                    }catch (IOException e)
+                    {
+
+                    }
+
+
+
+
+                    //-------------------------
+                }
+            };
+
+            discover.start();
+//
+            return  "hi";
+
+
+
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+        }
+    }
+
+
+
+
+
+
+
 
 
     @Override
@@ -541,8 +787,6 @@ public class MainActivity extends AppCompatActivity {
             mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
             Log.d(TAG,"Resumed Discovering Correctly");
         }
-
-
 
     }
 
@@ -756,7 +1000,11 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.putExtra("HOST",discoveredHost+"")
                         .setAction(getPackageName() + ".HOST");
+                intent.putExtra("PORT",discoveredPORT+"")
+                        .setAction(getPackageName() + ".HOST");
+
                 sendBroadcast(intent);
+
                 if (serviceInfo.getServiceName().equals(SERVICE_NAME)) {
                     Log.d(TAG, "Same IP.");
 
