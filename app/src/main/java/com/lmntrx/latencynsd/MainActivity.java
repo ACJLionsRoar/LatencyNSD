@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
 
     InetAddress handshakeIP;
 
+    Timer countDownTimer;
+
     boolean serviceHosting = false;
     boolean serviceDiscovering = false;
     Runnable updater;
@@ -149,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
         updater = new Runnable() {
             @Override
             public void run() {
-                seconds[0] += 500;
+                seconds[0] += 50;
                 currentTime=serverTime+seconds[0];
                 finalTimer=currentTime-serverTime;
                 //display.setText("t: " + finalTimer);
@@ -163,8 +165,8 @@ public class MainActivity extends AppCompatActivity {
                 handler.post(updater);
             }
         };
-        Timer timer = new Timer();
-        timer.schedule(timerTask,500,500);
+        countDownTimer = new Timer();
+        countDownTimer.schedule(timerTask,50,50);
 
         //TextView sTime = (TextView) findViewById(R.id.serverTime);
         //final TextView cTime = (TextView) findViewById(R.id.currentTime);
@@ -296,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
 
                 new HostTask().execute();
 
-                handshakeTV.setText("Receiving.....Kittumbo kaanikkam....");
+                handshakeTV.setText(" ");
 
                 // asynctask execute aayi kazhinjittu oru String Variable il Host IP of 2nd phone kittanam. aa host IP vechittanu 1st fone gonna send a data to 2nd phone and test latency
 
@@ -369,8 +371,8 @@ public class MainActivity extends AppCompatActivity {
             test.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
 
-                    testStartTime=currentTime;
-                    Log.d("TAG","Test Start Time:"+testStartTime);
+
+
 
                     new sendTestData().execute();
 
@@ -435,7 +437,14 @@ public class MainActivity extends AppCompatActivity {
             TextView latencyTxtVw = (TextView) findViewById(R.id.latencyDisplay);
 
             latencyTxtVw.setVisibility(View.VISIBLE);
-            latencyTxtVw.setText("Latency="+intent.getStringExtra("LATENCY"));
+
+            long validate = Long.parseLong(intent.getStringExtra("LATENCY"));
+
+            if(validate==0)
+                latencyTxtVw.setText("Latency less than 50ms");
+
+            else
+            latencyTxtVw.setText("Latency="+intent.getStringExtra("LATENCY")+" ms");
 
 
 
@@ -612,9 +621,9 @@ public class MainActivity extends AppCompatActivity {
 
             TextView handshakeOnDiscovery = (TextView) findViewById(R.id.handshakeTxtView);
             TextView header = (TextView) findViewById(R.id.header);
-            header.setText("Trying...");
+            header.setText("Discover");
             handshakeOnDiscovery.setVisibility(View.VISIBLE);
-            handshakeOnDiscovery.setText("Cheythondirikka...");
+            handshakeOnDiscovery.setText("Searching...");
 
 
         }
@@ -636,7 +645,9 @@ public class MainActivity extends AppCompatActivity {
                         DataOutputStream dataOutputStream = new DataOutputStream(
                                 socket.getOutputStream());
 
+                        testStartTime=currentTime;
                         String testData=testStartTime+"";
+
 
                         dataOutputStream.writeUTF(testData);
 
@@ -657,6 +668,8 @@ public class MainActivity extends AppCompatActivity {
 
 
                     latency= returnedFinishTime-testStartTime;
+                    if(latency<0)
+                        latency=0;
 
                     Intent intent = new Intent();
                     intent.setAction(getPackageName() + ".LATENCY");
@@ -819,6 +832,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         handler.removeCallbacks(updater);
+
+        countDownTimer.cancel();
+
         super.onDestroy();
     }
 

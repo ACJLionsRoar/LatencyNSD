@@ -153,7 +153,7 @@ tools:context="com.lmntrx.latencynsd.MainActivity">
         android:gravity="center"
         android:paddingBottom="16dp"
         android:paddingTop="16dp"
-
+        android:visibility="gone"
         android:textColor="#fff"
         android:background="@color/colorPrimaryDark"
 
