@@ -1,9 +1,13 @@
 package com.lmntrx.latencynsd;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -79,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-       final Button hostBtn= (Button) findViewById(R.id.hostBTN);
+        final Button hostBtn= (Button) findViewById(R.id.hostBTN);
         final  Button discoverBtn= (Button) findViewById(R.id.discoverBTN);
         final LinearLayout buttonsLL = (LinearLayout) findViewById(R.id.ButtonsLinear);
         final TextView handshakeTV= (TextView) findViewById(R.id.handshakeTxtView);
@@ -188,16 +192,6 @@ public class MainActivity extends AppCompatActivity {
                 //
                 buttonsLL.setVisibility(View.GONE);
 
-
-
-
-
-
-
-
-
-
-
              //   try {
 //
 //
@@ -265,89 +259,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                               Thread handshake= new Thread() {
-
-                                    @Override
-                                    public void run() {
-                                        //------------------------------
-
-
-                                        try {
-
-                                            initializeServerSocket();
-                                            registerService(SocketServerPORT);
-                                            header.setText("Hosted on Port:"+SocketServerPORT);
-
-
-
-
-                                            Log.d(TAG, "REQUIRED TRY BLOCK 1");
-
-
-                                            Socket socket = serverSocket.accept();
-                                           // loadingTimer.cancel();
-
-
-
-                                            Log.d(TAG, "REQUIRED TRY BLOCK 2");
-
-
-                                            DataInputStream dataInputStream = new DataInputStream(
-                                                    socket.getInputStream());
-
-                                            Log.d(TAG, "REQUIRED TRY BLOCK 3");
-                                            DataOutputStream dataOutputStream = new DataOutputStream(
-                                                    socket.getOutputStream());
-
-                                            Log.d(TAG, "REQUIRED TRY BLOCK 4");
-
-
-                                            String messageFromClient;
-
-                                            Log.d(TAG,"BEFORE READING FROM INPUT STREAM");
-
-                                            //If no message sent from client, this code will block the program
-                                            messageFromClient = dataInputStream.readUTF();
-                                            Log.d(TAG,"AFTER READING FROM INPUT STREAM");
-
-
-                                            Log.d(TAG,"messagefromClient:: "+messageFromClient);
-
-
-
-
-
-                                                Log.d(TAG, "MESSAGE::::" + messageFromClient);
-
-                                            handshakeIP=InetAddress.getByName(messageFromClient);
-
-
-
-
-
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-
-
-                                        //-------------------------
-                                    }
-                                };
-
-
-
-                                handshake.start();
-
-                                try
-                                {
-                                    handshake.join();
-
-                                }catch (InterruptedException e)
-                                {
-
-                                }
-
-
 
 //                                TextView debug= (TextView) findViewById(R.id.debug);
 //
@@ -366,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
+                new HostTask().execute();
 
 
 
@@ -459,10 +370,109 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ((TextView)findViewById(R.id.header)).setText(intent.getStringExtra("PORT"));
+        }
+    };
+
+    private class HostTask extends AsyncTask<Void,Void,String>{
+        @Override
+        protected String doInBackground(Void... params) {
+            Thread handshake= new Thread() {
+
+                @Override
+                public void run() {
+                    //------------------------------
+
+
+                    try {
+
+                        initializeServerSocket();
+                        registerService(SocketServerPORT);
+                        Intent intent = new Intent();
+                        intent.setAction(getPackageName());
+                        intent.putExtra("PORT",SocketServerPORT);
+                        sendBroadcast(intent);
+                        //header.setText("Hosted on Port:"+SocketServerPORT);
+
+
+
+
+                        Log.d(TAG, "REQUIRED TRY BLOCK 1");
+
+
+                        Socket socket = serverSocket.accept();
+                        // loadingTimer.cancel();
+
+
+
+                        Log.d(TAG, "REQUIRED TRY BLOCK 2");
+
+
+                        DataInputStream dataInputStream = new DataInputStream(
+                                socket.getInputStream());
+
+                        Log.d(TAG, "REQUIRED TRY BLOCK 3");
+                        DataOutputStream dataOutputStream = new DataOutputStream(
+                                socket.getOutputStream());
+
+                        Log.d(TAG, "REQUIRED TRY BLOCK 4");
+
+
+                        String messageFromClient;
+
+                        Log.d(TAG,"BEFORE READING FROM INPUT STREAM");
+
+                        //If no message sent from client, this code will block the program
+                        messageFromClient = dataInputStream.readUTF();
+                        Log.d(TAG,"AFTER READING FROM INPUT STREAM");
+
+
+                        Log.d(TAG,"messagefromClient:: "+messageFromClient);
+
+
+
+
+
+                        Log.d(TAG, "MESSAGE::::" + messageFromClient);
+
+                        handshakeIP=InetAddress.getByName(messageFromClient);
+
+
+
+
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
+                    //-------------------------
+                }
+            };
+
+
+
+            handshake.start();
+
+            try
+            {
+                handshake.join();
+
+            }catch (InterruptedException ignored)
+            {
+
+            }
+            return SocketServerPORT + "";
+        }
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
-
+        unregisterReceiver(receiver);
        if(serviceHosting)
        {
            mNsdManager.unregisterService(mRegistrationListener);
@@ -479,6 +489,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(getPackageName());
+        registerReceiver(receiver,intentFilter);
         if (serviceHosting)
         {
 
