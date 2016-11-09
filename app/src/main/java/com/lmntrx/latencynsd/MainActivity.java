@@ -3,6 +3,7 @@ package com.lmntrx.latencynsd;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.nsd.NsdManager;
@@ -10,6 +11,7 @@ import android.net.nsd.NsdServiceInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -90,9 +92,12 @@ public class MainActivity extends AppCompatActivity {
         final TextView handshakeTV= (TextView) findViewById(R.id.handshakeTxtView);
         final  TextView handshakeDots= (TextView) findViewById(R.id.handshakeDots);
 
+
         mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
 
-        try{
+        new Time(this).execute();
+
+        /*try{
             ans = new Time().execute().get();
             Log.d("Test",ans);
         } catch(InterruptedException e) {
@@ -102,7 +107,11 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        serverTime=Long.parseLong(ans);
+        try {
+            serverTime=Long.parseLong(ans);
+        }catch (Exception e){
+            serverTime = 0;
+        }
         currentTime=serverTime;
 
         handler = new Handler();
@@ -125,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         countDownTimer = new Timer();
-        countDownTimer.schedule(timerTask,50,50);
+        countDownTimer.schedule(timerTask,500,500);*/
 
 
         hostBtn.setOnClickListener(new View.OnClickListener() {
@@ -137,11 +146,6 @@ public class MainActivity extends AppCompatActivity {
 
                     serviceDiscovering = false;
                     serviceHosting = true;
-
-
-
-
-
                     Log.d(TAG, "REGISTERED PORT 1= " + SocketServerPORT);
 
 
@@ -175,6 +179,45 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    BroadcastReceiver timereceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ans = intent.getStringExtra("TIME");
+
+            try {
+                serverTime=Long.parseLong(ans);
+                currentTime=serverTime;
+
+                handler = new Handler();
+
+                final int[] seconds = {0};
+                updater = new Runnable() {
+                    @Override
+                    public void run() {
+                        seconds[0] += 50;
+                        currentTime=serverTime+seconds[0];
+                        finalTimer=currentTime-serverTime;
+
+                    }
+                };
+
+                TimerTask timerTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(updater);
+                    }
+                };
+                countDownTimer = new Timer();
+                countDownTimer.schedule(timerTask,500,500);
+                Toast.makeText(MainActivity.this,"Success",Toast.LENGTH_SHORT).show();
+
+            }catch (Exception e){
+                Toast.makeText(MainActivity.this,"Initializing Failed. Attempting again.",Toast.LENGTH_LONG).show();
+
+                new Time(MainActivity.this).execute();
+            }
+        }
+    };
 
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -533,14 +576,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
-
-
-
-
-
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -548,6 +583,7 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(receiver2);
         unregisterReceiver(finalReceiverClientDevice);
         unregisterReceiver(finalReceiverHostDevice);
+        unregisterReceiver(timereceiver);
        if(serviceHosting)
        {
            mNsdManager.unregisterService(mRegistrationListener);
@@ -576,6 +612,9 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter intentFilter4 = new IntentFilter();
         intentFilter4.addAction(getPackageName() + ".REPLY");
         registerReceiver(finalReceiverClientDevice,intentFilter4);
+        IntentFilter intentFilter5 = new IntentFilter();
+        intentFilter5.addAction(getPackageName() + ".TIME");
+        registerReceiver(timereceiver,intentFilter5);
         if (serviceHosting)
         {
 
@@ -599,13 +638,21 @@ public class MainActivity extends AppCompatActivity {
 
         if(serviceHosting)
         {
-            mNsdManager.unregisterService(mRegistrationListener);
+            try {
+                mNsdManager.unregisterService(mRegistrationListener);
+            }catch (IllegalArgumentException ignored){
+
+            }
             Log.d(TAG,"Destroyed Hosting Correctly");
         }
 
         else if(serviceDiscovering)
         {
-            mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+            try {
+                mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+            }catch (IllegalArgumentException ignored){
+
+            }
             Log.d(TAG,"Destroyed Discovering Correctly");
         }
 
@@ -617,7 +664,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Exit?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                System.exit(0);
+            }
+        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
 
     public void registerService(int port) {
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
