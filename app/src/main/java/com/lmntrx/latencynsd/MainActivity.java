@@ -279,21 +279,10 @@ public class MainActivity extends AppCompatActivity {
 
                 // INGANE CHEYUMBO UI HANGS.
 
-                String returnedHandshakeIP="didnt work";
-
-                try {
-                     returnedHandshakeIP= new HostTask().execute().get();
-                } catch (InterruptedException e)
-                {
-
-                }catch (ExecutionException e)
-                {
-
-                }
+                new HostTask().execute();
 
                 // asynctask execute aayi kazhinjittu oru String Variable il Host IP of 2nd phone kittanam. aa host IP vechittanu 1st fone gonna send a data to 2nd phone and test latency
 
-                handshakeTV.setText(returnedHandshakeIP);
 
 
 
@@ -388,10 +377,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    //ithanu receiver
+    //IP and Port kittumbo async task sends out a broadcast
+    //adh eppozhayalum ivide receive cheytholum
+    //receive cheyyumbo intentil ninne data textViewsil disp cheyyum
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             ((TextView)findViewById(R.id.header)).setText(intent.getStringExtra("PORT"));
+            ((TextView)findViewById(R.id.handshakeTxtView)).setText(intent.getStringExtra("IP"));
         }
     };
 
@@ -411,8 +406,6 @@ public class MainActivity extends AppCompatActivity {
                         registerService(SocketServerPORT);
                         Intent intent = new Intent();
                         intent.setAction(getPackageName());
-                        intent.putExtra("PORT",SocketServerPORT);
-                        sendBroadcast(intent);
                         //header.setText("Hosted on Port:"+SocketServerPORT);
 
 
@@ -457,6 +450,9 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "MESSAGE::::" + messageFromClient);
 
                         handshakeIP=InetAddress.getByName(messageFromClient);
+                        intent.putExtra("PORT",SocketServerPORT);
+                        intent.putExtra("IP",handshakeIP+"");
+                        sendBroadcast(intent);
 
 
 
