@@ -333,6 +333,17 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    BroadcastReceiver receiver2 = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            TextView handshakeOnDiscovery = (TextView) findViewById(R.id.handshakeTxtView);
+            handshakeOnDiscovery.setVisibility(View.VISIBLE);
+            handshakeOnDiscovery.setText(intent.getStringExtra("HOST"));
+            TextView header = (TextView) findViewById(R.id.header);
+            header.setText("Discovery Successful!");
+        }
+    };
+
     private class HostTask extends AsyncTask<Void,Void,String>{
         @Override
         protected String doInBackground(Void... params) {
@@ -444,7 +455,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
                     //-------------------------
                 }
             };
@@ -481,11 +491,10 @@ public class MainActivity extends AppCompatActivity {
 
             TextView handshakeOnDiscovery = (TextView) findViewById(R.id.handshakeTxtView);
             TextView header = (TextView) findViewById(R.id.header);
+            header.setText("Trying...");
+            handshakeOnDiscovery.setVisibility(View.VISIBLE);
+            handshakeOnDiscovery.setText("Cheythondirikka...");
 
-                handshakeOnDiscovery.setVisibility(View.VISIBLE);
-                handshakeOnDiscovery.setText(discoveredHost +"");
-
-            header.setText("Discovery Successful!");
 
         }
     }
@@ -495,6 +504,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
+        unregisterReceiver(receiver2);
        if(serviceHosting)
        {
            mNsdManager.unregisterService(mRegistrationListener);
@@ -514,6 +524,9 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(getPackageName());
         registerReceiver(receiver,intentFilter);
+        IntentFilter intentFilter2 = new IntentFilter();
+        intentFilter2.addAction(getPackageName() + ".HOST");
+        registerReceiver(receiver2,intentFilter2);
         if (serviceHosting)
         {
 
@@ -740,6 +753,10 @@ public class MainActivity extends AppCompatActivity {
 //                handshakeOnDiscovery.setVisibility(View.VISIBLE);
 //                handshakeOnDiscovery.setText(discoveredHost +"");
 
+                Intent intent = new Intent();
+                intent.putExtra("HOST",discoveredHost+"")
+                        .setAction(getPackageName() + ".HOST");
+                sendBroadcast(intent);
                 if (serviceInfo.getServiceName().equals(SERVICE_NAME)) {
                     Log.d(TAG, "Same IP.");
 
