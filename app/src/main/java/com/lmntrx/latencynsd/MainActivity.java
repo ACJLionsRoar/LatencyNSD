@@ -307,66 +307,9 @@ public class MainActivity extends AppCompatActivity {
 
                 serviceHosting=false;
                 serviceDiscovering=true;
+
                 initializeDiscoveryListener();
                 mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
-
-                Log.d(TAG, "DISCOVERED PORT 1= " + discoveredPORT);
-
-                while(okToContinueClient==0)
-                {
-
-                    Timer timer;
-                    timer = new Timer();
-                    timer.scheduleAtFixedRate(new TimerTask() {
-                        @Override
-                        public void run() {
-                            //Generate number
-                        }
-                    }, 2000, 2000);
-
-                    if (discoveredPORT!=0)
-                    {
-                        okToContinueClient=1;
-                        timer.cancel();
-                    }
-                }
-
-                new Thread(){
-
-                    @Override
-                    public void run(){
-
-                        try {
-
-
-
-                    Socket socket = new Socket(discoveredHost,discoveredPORT);
-                    DataInputStream dataInputStream = new DataInputStream(
-                            socket.getInputStream());
-                    DataOutputStream dataOutputStream = new DataOutputStream(
-                            socket.getOutputStream());
-
-                    String msgToServer=getIpAddress();
-
-                    dataOutputStream.writeUTF(msgToServer);
-                            Log.d(TAG,"Did it work?");
-
-                    //TextView debug= (TextView) findViewById(R.id.debug);
-                    //debug.setText("Message Wrote:"+msgToServer);
-                }
-                catch (IOException e)
-                {
-
-                }
-
-                        }
-                }.start();
-
-
-
-//
-
-
 
             }
         });
@@ -712,8 +655,20 @@ public class MainActivity extends AppCompatActivity {
                         Toast.LENGTH_LONG).show();
 
 
+                try {
+                    Socket socket = new Socket(discoveredHost,discoveredPORT);
+                    DataInputStream dataInputStream = new DataInputStream(
+                            socket.getInputStream());
+                    DataOutputStream dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
 
+                    String msgToServer=getIpAddress();
 
+                    dataOutputStream.writeUTF(msgToServer);
+                    Log.d(TAG,"Did it work?");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 if (serviceInfo.getServiceName().equals(SERVICE_NAME)) {
                     Log.d(TAG, "Same IP.");
