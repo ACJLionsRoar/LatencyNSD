@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private NsdManager mNsdManager;
     ServerSocket serverSocket;
 
+    NsdServiceInfo resutNsdServiceInfo;
     int discoveredPORT;
     InetAddress discoveredHost;
 
@@ -304,12 +305,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("Entered Onclick","Entered Onclick");
 
                 buttonsLL.setVisibility(View.GONE);
+                new  DiscoverTask().execute();
 
-                serviceHosting=false;
-                serviceDiscovering=true;
 
-                initializeDiscoveryListener();
-                mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
 
             }
         });
@@ -427,6 +425,71 @@ public class MainActivity extends AppCompatActivity {
             return handshakeIP + "";
         }
     }
+
+
+    private class DiscoverTask extends AsyncTask<Void,Void,NsdServiceInfo>{
+        @Override
+        protected NsdServiceInfo doInBackground(Void... params) {
+            Thread discover= new Thread() {
+
+                @Override
+                public void run() {
+                    //------------------------------
+
+                    serviceHosting=false;
+                    serviceDiscovering=true;
+
+                    initializeDiscoveryListener();
+                    mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
+
+
+
+
+                    //-------------------------
+                }
+            };
+
+            discover.start();
+            try{
+                discover.join();
+            }
+           catch (InterruptedException e)
+           {
+
+           }
+
+            // --------------------------------------------------ITHU NOKK----------------------------------------------------
+
+
+
+            // ee return cheyyunna value null aa.  discover.join() should have executed this return after thread is completed.
+            // but angane ittitum  work aayilla.
+            // this return is executed before the thread is completed and discovery is resolved. atha null varane.
+            // ee return cheyyunna value il resolve cheyyunna method il initialise cheytha value kitticha baaki work aayikolum
+            // automatically.
+            return  resutNsdServiceInfo;
+
+
+            // this return is passed to onPostExecute which is on the main UI thread.
+
+
+        }
+
+        @Override
+        protected void onPostExecute(NsdServiceInfo resultNsdServiceInfo) {
+            super.onPostExecute(resultNsdServiceInfo);
+
+            TextView handshakeOnDiscovery = (TextView) findViewById(R.id.handshakeTxtView);
+            TextView header = (TextView) findViewById(R.id.header);
+
+                handshakeOnDiscovery.setVisibility(View.VISIBLE);
+                handshakeOnDiscovery.setText(discoveredHost +"");
+
+            header.setText("Discovery Successful!");
+
+        }
+    }
+
 
     @Override
     protected void onPause() {
@@ -637,6 +700,7 @@ public class MainActivity extends AppCompatActivity {
             public void onServiceResolved(NsdServiceInfo serviceInfo) {
 
                 NsdServiceInfo mService = serviceInfo;
+                resutNsdServiceInfo = serviceInfo;
 
                 Log.d(TAG, "Resolve Succeeded. " + serviceInfo);
 
@@ -669,6 +733,12 @@ public class MainActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+//
+//                TextView handshakeOnDiscovery = (TextView) findViewById(R.id.handshakeTxtView);
+//
+//                handshakeOnDiscovery.setVisibility(View.VISIBLE);
+//                handshakeOnDiscovery.setText(discoveredHost +"");
 
                 if (serviceInfo.getServiceName().equals(SERVICE_NAME)) {
                     Log.d(TAG, "Same IP.");
