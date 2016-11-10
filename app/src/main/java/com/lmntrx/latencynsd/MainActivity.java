@@ -101,47 +101,8 @@ public class MainActivity extends AppCompatActivity {
 
         mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
 
+        // CALL THIS TO GET SERVER TIME FROM INTERNET. RUNS IN BACKGROUND
         new Time(this).execute();
-
-        /*try{
-            ans = new Time().execute().get();
-            Log.d("Test",ans);
-        } catch(InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        catch (ExecutionException ignored) {
-
-        }
-
-        try {
-            serverTime=Long.parseLong(ans);
-        }catch (Exception e){
-            serverTime = 0;
-        }
-        currentTime=serverTime;
-
-        handler = new Handler();
-
-        final int[] seconds = {0};
-        updater = new Runnable() {
-            @Override
-            public void run() {
-                seconds[0] += 50;
-                currentTime=serverTime+seconds[0];
-                finalTimer=currentTime-serverTime;
-
-            }
-        };
-
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(updater);
-            }
-        };
-        countDownTimer = new Timer();
-        countDownTimer.schedule(timerTask,500,500);*/
-
 
         hostBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -177,13 +138,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
-
-
     }
+
+    // THIS IS RUN AFTER GETTING SERVER TIME FROM TIME ASYNC TASK
 
     BroadcastReceiver timereceiver = new BroadcastReceiver() {
         @Override
@@ -215,10 +172,8 @@ public class MainActivity extends AppCompatActivity {
                 };
                 countDownTimer = new Timer();
                 countDownTimer.schedule(timerTask,500,500);
-                Toast.makeText(MainActivity.this,"Success",Toast.LENGTH_SHORT).show();
 
             }catch (Exception e){
-                Toast.makeText(MainActivity.this,"Initializing Failed. Attempting again.",Toast.LENGTH_LONG).show();
 
                 new Time(MainActivity.this).execute();
             }
